@@ -18,6 +18,9 @@ require("conform").setup({
 
   formatters = {
     injected = { options = { ignore_errors = true } },
+    shfmt = {
+      append_args = { "-i", "2" },
+    },
   },
 
   format_on_save = function(bufnr)
@@ -25,6 +28,7 @@ require("conform").setup({
       return
     end
 
+    -- Do not autosave packages in node_modules.
     local bufname = vim.api.nvim_buf_get_name(bufnr)
     if bufname:match("/node_modules/") then
       return
