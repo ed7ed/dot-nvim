@@ -96,11 +96,11 @@ local function render_fleeting_notes(bufnr)
     local row = title_line_idx + idx
     local line_str = section_lines[idx + 2]
     local hash_start = title_col + 3
-    local hash_end = hash_start + #"# "
+    local hash_end = hash_start + #"#"
 
     vim.api.nvim_buf_set_extmark(bufnr, ns, row, hash_start, {
       end_col = hash_end,
-      hl_group = "DashboardProjectIcon",
+      hl_group = "DashboardFleetingHash",
     })
     vim.api.nvim_buf_set_extmark(bufnr, ns, row, hash_end, {
       end_col = #line_str,
@@ -164,6 +164,7 @@ local function set_dashboard_highlights()
   vim.api.nvim_set_hl(0, "DashboardShortCut", { link = "Keyword", default = true })
   vim.api.nvim_set_hl(0, "DashboardShortCutIcon", { link = "Function", default = true })
   vim.api.nvim_set_hl(0, "DashboardFooter", { link = "Comment", default = true })
+  vim.api.nvim_set_hl(0, "DashboardFleetingHash", { link = "DiagnosticSignError", default = true })
 end
 
 set_dashboard_highlights()
