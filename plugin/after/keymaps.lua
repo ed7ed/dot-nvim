@@ -407,8 +407,8 @@ set("n", "<leader>oe", function()
 end, { desc = "Zk open fleeting notes" })
 
 set("n", "<leader>os", function()
-  local dir = vim.env.ZK_NOTEBOOK_DIR
-  if not dir or dir == "" or vim.fn.isdirectory(dir) == 0 then
+  local dir = require("config.zk.notebook").dir()
+  if not dir then
     vim.notify("ZK_NOTEBOOK_DIR is not set or does not exist", vim.log.levels.WARN)
     return
   end
