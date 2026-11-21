@@ -9,10 +9,30 @@ zk.setup({ picker = "select" })
 ----- Use recent used history -----
 
 local MAX_HISTORY = 7
-local history_path = vim.fs.joinpath(vim.env.ZK_NOTEBOOK_DIR, ".zk", "history")
+
+local function get_notebook_dir()
+  local dir = vim.env.ZK_NOTEBOOK_DIR
+  if not dir or dir == "" then
+    return nil
+  end
+  local stat = vim.uv.fs_stat(dir)
+  if not stat or stat.type ~= "directory" then
+    return nil
+  end
+  return dir
+end
+
+local function get_history_path()
+  local dir = get_notebook_dir()
+  if not dir then
+    return nil
+  end
+  return vim.fs.joinpath(dir, ".zk", "history")
+end
 
 local function read_history()
-  if not vim.uv.fs_stat(history_path) then
+  local history_path = get_history_path()
+  if not history_path or not vim.uv.fs_stat(history_path) then
     return {}
   end
 
@@ -33,6 +53,11 @@ local function read_history()
 end
 
 local function record_history(abs_path)
+  local history_path = get_history_path()
+  if not history_path then
+    return
+  end
+
   local history = { abs_path }
   for _, entry in ipairs(read_history()) do
     if entry ~= abs_path then
@@ -204,12 +229,40 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 
 ----- Fleeting notes -----
 
-local fleeting_notes_path = vim.fs.joinpath(vim.env.ZK_NOTEBOOK_DIR, "m076.md")
-local fleeting_notes_name = vim.fs.basename(fleeting_notes_path)
+local FLEETING_NOTES_FILENAME = "m076.md"
+
+local function get_fleeting_notes_path()
+  local dir = get_notebook_dir()
+  if not dir then
+    return nil
+  end
+  local path = vim.fs.joinpath(dir, FLEETING_NOTES_FILENAME)
+  local stat = vim.uv.fs_stat(path)
+  if not stat or stat.type ~= "file" then
+    return nil
+  end
+  return path
+end
+
+local function notify_missing_fleeting_notes()
+  vim.notify(
+    string.format("Fleeting notes unavailable: check ZK_NOTEBOOK_DIR and %s", FLEETING_NOTES_FILENAME),
+    vim.log.levels.WARN
+  )
+end
 
 local function get_fleeting_headers(limit)
+  local fleeting_notes_path = get_fleeting_notes_path()
+  if not fleeting_notes_path then
+    return {}
+  end
+
   limit = limit or 5
-  local lines = vim.fn.readfile(fleeting_notes_path)
+  local ok, lines = pcall(vim.fn.readfile, fleeting_notes_path)
+  if not ok then
+    return {}
+  end
+
   local headers = {}
   local in_codeblock = false
   local in_frontmatter = false
@@ -243,7 +296,18 @@ local function get_fleeting_headers(limit)
 end
 
 local function write_fleeting_snippet(snippet_lines, range)
-  local existing = vim.fn.readfile(fleeting_notes_path)
+  local fleeting_notes_path = get_fleeting_notes_path()
+  if not fleeting_notes_path then
+    notify_missing_fleeting_notes()
+    return nil
+  end
+
+  local ok, existing = pcall(vim.fn.readfile, fleeting_notes_path)
+  if not ok then
+    notify_missing_fleeting_notes()
+    return nil
+  end
+
   local start_idx = range and range[1] or (#existing + 1)
   local end_idx = range and range[2] or #existing
 
@@ -268,6 +332,11 @@ local function write_fleeting_snippet(snippet_lines, range)
 end
 
 local function open_new_fleeting_note()
+  if not get_fleeting_notes_path() then
+    notify_missing_fleeting_notes()
+    return
+  end
+
   local buf = vim.api.nvim_create_buf(false, false)
   vim.api.nvim_buf_set_name(buf, "fleeting-note://" .. tostring(vim.uv.hrtime()))
 
@@ -289,7 +358,7 @@ local function open_new_fleeting_note()
     col = math.floor((vim.o.columns - width) / 2),
     style = "minimal",
     border = "rounded",
-    title = string.format(" 󰠮 New Fleeting Note (%s) ", fleeting_notes_name),
+    title = string.format(" 󰠮 New Fleeting Note (%s) ", FLEETING_NOTES_FILENAME),
     title_pos = "center",
   })
 
@@ -312,9 +381,13 @@ local function open_new_fleeting_note()
         vim.api.nvim_buf_set_lines(buf, 0, 1, false, { lines[1] })
       end
 
-      saved_range = write_fleeting_snippet(lines, saved_range)
+      local next_range = write_fleeting_snippet(lines, saved_range)
+      if not next_range then
+        return
+      end
+      saved_range = next_range
       vim.bo[buf].modified = false
-      vim.notify(string.format("Saved to fleeting notes (%s)", fleeting_notes_name), vim.log.levels.INFO)
+      vim.notify(string.format("Saved to fleeting notes (%s)", FLEETING_NOTES_FILENAME), vim.log.levels.INFO)
     end,
   })
 
@@ -332,11 +405,19 @@ local function open_new_fleeting_note()
 end
 
 zk.fleeting = {
-  path = fleeting_notes_path,
-  name = fleeting_notes_name,
+  path = get_fleeting_notes_path(),
+  name = FLEETING_NOTES_FILENAME,
+  is_available = function()
+    return get_fleeting_notes_path() ~= nil
+  end,
   get_headers = get_fleeting_headers,
   open_new = open_new_fleeting_note,
   open_file = function(lnum)
+    local fleeting_notes_path = get_fleeting_notes_path()
+    if not fleeting_notes_path then
+      notify_missing_fleeting_notes()
+      return
+    end
     if lnum then
       vim.cmd("edit +" .. lnum .. " " .. vim.fn.fnameescape(fleeting_notes_path))
       vim.cmd("normal! zz")

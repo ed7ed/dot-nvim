@@ -407,7 +407,12 @@ set("n", "<leader>oe", function()
 end, { desc = "Zk open fleeting notes" })
 
 set("n", "<leader>os", function()
-  Snacks.picker.grep({ cwd = vim.env.ZK_NOTEBOOK_DIR })
+  local dir = vim.env.ZK_NOTEBOOK_DIR
+  if not dir or dir == "" or vim.fn.isdirectory(dir) == 0 then
+    vim.notify("ZK_NOTEBOOK_DIR is not set or does not exist", vim.log.levels.WARN)
+    return
+  end
+  Snacks.picker.grep({ cwd = dir })
 end, { desc = "Zk grep" })
 
 vim.api.nvim_create_autocmd("FileType", {

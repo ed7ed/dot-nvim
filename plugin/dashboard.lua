@@ -22,7 +22,11 @@ local quotes = {
 }
 
 local function render_fleeting_notes(bufnr)
-  local zk = require("zk")
+  local ok, zk = pcall(require, "zk")
+  if not ok or not zk.fleeting or not zk.fleeting.is_available() then
+    return
+  end
+
   local entries = zk.fleeting.get_headers(5)
   local fleeting_section_title = string.format("󰠮  Fleeting Notes (%s)", zk.fleeting.name)
 
