@@ -1,6 +1,7 @@
 require("nvim-treesitter").install({
   "bash",
   "c",
+  "commonlisp",
   "css",
   "dart",
   "diff",
