@@ -40,29 +40,51 @@ M.quotes = {
   "Controlling complexity is the essence of computer programming. — Brian Kernighan",
 }
 
-local function snacks_picker(picker, opts)
-  return function()
-    require("snacks").picker[picker](opts)
-  end
-end
-
 function M.random_quote()
   local idx = (tonumber(vim.uv.hrtime()) % #M.quotes) + 1
   return M.quotes[idx]
 end
 
+--- dashboard-nvim serializes callback functions via string.dump(), which drops upvalues.
+--- Keep every shortcut action self-contained with no captured locals.
 function M.shortcuts()
   return {
-    { icon = "󰈞 ", desc = "Files ", group = "Label", key = "f", action = snacks_picker("files") },
-    { icon = "󰊄 ", desc = "Grep ", group = "DiagnosticHint", key = "g", action = snacks_picker("grep") },
-    { icon = "󰋚 ", desc = "Recent ", group = "Number", key = "r", action = snacks_picker("recent") },
+    {
+      icon = "󰈞 ",
+      desc = "Files ",
+      group = "Label",
+      key = "f",
+      action = function()
+        require("snacks").picker.files()
+      end,
+    },
+    {
+      icon = "󰊄 ",
+      desc = "Grep ",
+      group = "DiagnosticHint",
+      key = "g",
+      action = function()
+        require("snacks").picker.grep()
+      end,
+    },
+    {
+      icon = "󰋚 ",
+      desc = "Recent ",
+      group = "Number",
+      key = "r",
+      action = function()
+        require("snacks").picker.recent()
+      end,
+    },
     { icon = "󰠮 ", desc = "Notes ", group = "String", key = "z", action = "ZkNotes" },
     {
       icon = "󰒓 ",
       desc = "Config ",
       group = "Constant",
       key = "c",
-      action = snacks_picker("files", { cwd = vim.fn.stdpath("config") }),
+      action = function()
+        require("snacks").picker.files({ cwd = vim.fn.stdpath("config") })
+      end,
     },
     { icon = "󰈆 ", desc = "Quit ", group = "DiagnosticError", key = "q", action = "qa" },
   }
@@ -71,17 +93,19 @@ end
 function M.footer(elapsed_ms)
   local stats = require("dashboard.utils").get_package_manager_stats()
   local v = vim.version()
+  local ms = elapsed_ms or M.startup_ms
+  local timing = ms and string.format("  •  󱎫 %.1fms", ms) or ""
 
   return {
     "",
     string.format(
-      "%s v%d.%d.%d  •  󰏖 %d plugins  •  󱎫 %.1fms",
+      "%s v%d.%d.%d  •  󰏖 %d plugins%s",
       M.sections.footer_marker,
       v.major,
       v.minor,
       v.patch,
       stats.count,
-      elapsed_ms
+      timing
     ),
     "",
     "“" .. M.random_quote() .. "”",

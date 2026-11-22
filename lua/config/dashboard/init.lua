@@ -7,6 +7,7 @@ local M = {}
 local function setup_dashboard(elapsed_ms)
   local project = content.sections.project
   local mru = content.sections.mru
+  content.startup_ms = elapsed_ms
 
   require("dashboard").setup({
     theme = "hyper",
@@ -32,8 +33,9 @@ local function setup_dashboard(elapsed_ms)
         cwd_only = false,
       },
       shortcut = content.shortcuts(),
+      --- dashboard-nvim serializes footer via string.dump(), which drops upvalues.
       footer = function()
-        return content.footer(elapsed_ms)
+        return require("config.dashboard.content").footer()
       end,
     },
   })
@@ -50,12 +52,14 @@ function M.setup(start_time)
     group = vim.api.nvim_create_augroup("dashboard_init", { clear = true }),
     desc = "Initialize dashboard unless reading from stdin",
     callback = function()
+      local elapsed_ms = (vim.uv.hrtime() - t0) / 1e6
+      content.startup_ms = elapsed_ms
+
       if vim.fn.line2byte("$") ~= -1 then
         vim.g.read_from_stdin = 1
         return
       end
 
-      local elapsed_ms = (vim.uv.hrtime() - t0) / 1e6
       setup_dashboard(elapsed_ms)
     end,
   })
