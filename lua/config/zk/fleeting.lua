@@ -162,7 +162,7 @@ local function open_popup_window(buf)
     border = "rounded",
     title = string.format(" 󰠮 New Fleeting Note (%s) ", FILENAME),
     title_pos = "center",
-    footer = " :w save · q cancel ",
+    footer = " :w save · <esc> close · <c-c> close ",
     footer_pos = "center",
   })
 
@@ -218,7 +218,7 @@ function M.open_new()
     end
   end
 
-  vim.keymap.set("n", "q", close_popup, { buffer = buf, nowait = true, silent = true })
+  vim.keymap.set("n", "<esc>", close_popup, { buffer = buf, nowait = true, silent = true })
   vim.keymap.set("n", "<c-c>", close_popup, { buffer = buf, nowait = true, silent = true })
 
   vim.api.nvim_win_set_cursor(win, { 1, 2 })
