@@ -6,11 +6,6 @@ local POPUP_WIDTH = 80
 local POPUP_HEIGHT = 17
 local UPDATED_EVENT = "ZkFleetingNotesUpdated"
 
----@class ZkFleetingHeader
----@field lnum integer
----@field level integer
----@field text string
-
 local M = {
   name = FILENAME,
   updated_event = UPDATED_EVENT,
@@ -34,8 +29,6 @@ local function emit_updated()
   vim.api.nvim_exec_autocmds("User", { pattern = UPDATED_EVENT, modeline = false })
 end
 
----@param lines string[]
----@return ZkFleetingHeader[]
 local function parse_headers(lines)
   local headers = {}
   local in_frontmatter = false
@@ -65,8 +58,6 @@ local function parse_headers(lines)
   return headers
 end
 
----@param limit? integer
----@return ZkFleetingHeader[]
 function M.get_headers(limit)
   local path = M.get_path()
   if not path then
@@ -89,9 +80,6 @@ function M.get_headers(limit)
   return recent
 end
 
----@param snippet_lines string[]
----@param range? integer[]
----@return integer[]?
 local function write_snippet(snippet_lines, range)
   local path = M.get_path()
   if not path then
@@ -128,8 +116,6 @@ local function write_snippet(snippet_lines, range)
   return { new_start, new_end }
 end
 
----@param buf integer
----@return string[]
 local function normalize_snippet(buf)
   local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
   while #lines > 1 and lines[#lines] == "" do
@@ -144,8 +130,6 @@ local function normalize_snippet(buf)
   return lines
 end
 
----@param buf integer
----@return integer win
 local function open_popup_window(buf)
   local width = math.max(20, math.min(POPUP_WIDTH, vim.o.columns - 4))
   local height = math.max(6, math.min(POPUP_HEIGHT, vim.o.lines - 4))

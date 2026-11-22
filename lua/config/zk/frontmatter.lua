@@ -3,8 +3,6 @@ local M = {}
 local UPDATED_FORMAT = vim.env.ZK_DATE_FORMAT or "%Y-%m-%d %a"
 local UPDATED_KEYS = { updated = true, updated_at = true }
 
----@param lines string[]
----@return integer? idx, string? key, string? value
 local function find_updated(lines)
   if lines[1] ~= "---" then
     return nil
@@ -25,12 +23,6 @@ local function find_updated(lines)
   return nil
 end
 
----Returns:
----  `string[]` - file lines from git HEAD
----  `false`    - inside a git worktree, but file is not in HEAD yet
----  `nil`      - not inside a git worktree
----@param path string
----@return string[]|false|nil
 local function git_head_lines(path)
   local dir, name = vim.fs.dirname(path), vim.fs.basename(path)
   if vim.system({ "git", "-C", dir, "rev-parse", "--is-inside-work-tree" }):wait().code ~= 0 then
@@ -51,9 +43,6 @@ local function git_head_lines(path)
   return lines
 end
 
----@param lines string[]
----@param idx? integer
----@return string[]
 local function without_line(lines, idx)
   if not idx then
     return lines
@@ -64,8 +53,6 @@ local function without_line(lines, idx)
   return copy
 end
 
----@param buf integer
----@param path string
 local function update_buffer(buf, path)
   local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
   local idx, key, value = find_updated(lines)
