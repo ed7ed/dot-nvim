@@ -33,6 +33,10 @@ require("snacks").setup({
     exclude = exclude_search_patterns,
     hidden = true,
     ignored = true,
+    matcher = {
+      ignorecase = true,
+      smartcase = false,
+    },
     sources = {
       files = {
         hidden = true,
@@ -41,9 +45,16 @@ require("snacks").setup({
       buffers = {
         current = false, -- remove current buffer from the buffer list.
       },
-    },
-    grep = {
-      exclude = exclude_search_patterns,
+      grep = {
+        exclude = exclude_search_patterns,
+        args = { "--ignore-case" },
+      },
+      grep_buffers = {
+        args = { "--ignore-case" },
+      },
+      grep_word = {
+        args = { "--word-regexp", "--ignore-case" },
+      },
     },
     win = {
       input = {
