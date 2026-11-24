@@ -29,6 +29,8 @@ function _G.markdown_top_fold()
   return is_top_h1(vim.v.lnum) and ">1" or "="
 end
 
+vim.opt_local.concealcursor = ""
+vim.opt_local.conceallevel = 2
 vim.opt_local.foldenable = true
 vim.opt_local.foldexpr = "v:lua.markdown_top_fold()"
 vim.opt_local.foldlevelstart = 0
