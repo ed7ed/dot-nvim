@@ -7,6 +7,7 @@ require("conform").setup({
   },
 
   formatters_by_ft = {
+    fennel = { "fnlfmt" },
     go = { "goimports", "gopls" },
     javascript = { "prettier" },
     json = { "prettier" },

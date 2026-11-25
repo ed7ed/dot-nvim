@@ -44,6 +44,7 @@ local servers = {
   "dartls",
   "elixirls",
   "expert",
+  "fennel_ls",
   "gopls",
   "lua_ls",
   "nixd",

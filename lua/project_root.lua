@@ -28,6 +28,7 @@ M.patterns = function()
     "elm-stuff",
     "eln-cache",
     "elpaca",
+    "flsproject.fnl",
     "go.mod",
     "io.erl",
     "mix.exs",
